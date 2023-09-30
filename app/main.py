@@ -1,5 +1,5 @@
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
-from gnews.gnews import Gnews
+from gnews.fetcher import Gnews
 
 # Set variables
 language = "en"
