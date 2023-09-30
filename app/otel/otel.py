@@ -10,7 +10,6 @@ from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExport
 from opentelemetry import metrics
 from opentelemetry.sdk.metrics import MeterProvider
 from opentelemetry.sdk.metrics.export import (
-    ConsoleMetricExporter,
     PeriodicExportingMetricReader,
 )
 from opentelemetry.exporter.otlp.proto.grpc.metric_exporter import OTLPMetricExporter
