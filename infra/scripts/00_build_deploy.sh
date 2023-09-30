@@ -16,4 +16,4 @@ docker build \
 
 # docker run --name test "${DOCKERHUB_NAME}/${appName}"
 
-# docker push "${DOCKERHUB_NAME}/${httpserver[imageName]}"
+# docker push "${DOCKERHUB_NAME}/${appName}"
