@@ -1,31 +1,56 @@
+import os
+import json
+import urllib.request
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
-sentences = [
-    "VADER is smart, handsome, and funny.",
-    "VADER is smart, handsome, and funny!",
-    "VADER is very smart, handsome, and funny.",
-    "VADER is VERY SMART, handsome, and FUNNY.",
-    "VADER is VERY SMART, handsome, and FUNNY!!!",
-    "VADER is VERY SMART, really handsome, and INCREDIBLY FUNNY!!!",
-    "The book was good.",
-    "The book was kind of good.",
-    "The plot was good, but the characters are uncompelling and the dialog is not great.",
-    "A really bad, horrible book.",
-    "At least it isn't a horrible book.",
-    ":) and :D",
-    "",
-    "Today sux",
-    "Today sux!",
-    "Today SUX!",
-    "Today kinda sux! But I'll get by, lol",
-    "VW-Aktie nachbörslich etwas tiefer: Netzwerkstörung legt Volkswagen lahm - Produktionsstillstand auch bei Audi - Störungsdauer ungewiss",
-    "VW share slightly lower in after-hours trading: Network fault paralyzes Volkswagen - Production standstill also at Audi - Duration of fault uncertain",
-]
+# Set variables
+apikey = os.getenv("GNEWS_API_KEY")
+language = "en"
+country = "us"
+numMaxNews = 10
+search = "Microsoft"
+url = f'https://gnews.io/api/v4/search?q={search}&lang={language}&country={country}&max={numMaxNews}&apikey={apikey}'
 
-for sentence in sentences:
-    sid = SentimentIntensityAnalyzer()
-    print(sentence)
-    ss = sid.polarity_scores(sentence)
-    for k in sorted(ss):
-        print('{0}: {1}, '.format(k, ss[k]), end='')
-    print()
+# Fetch news & analyze
+with urllib.request.urlopen(url) as response:
+    data = json.loads(response.read().decode("utf-8"))
+    articles = data["articles"]
+
+    for articleCounter in range(len(articles)):
+
+        # title
+        title = articles[articleCounter]['title']
+        print(f"title: {title}")
+
+        # description
+        description = articles[articleCounter]['description']
+        print(f"description: {description}")
+
+        # url
+        url = articles[articleCounter]['url']
+        print(f"url: {url}")
+
+        # publishedAt
+        publishedAt = articles[articleCounter]['publishedAt']
+        print(f"publishedAt: {publishedAt}")
+
+        # sourceName
+        sourceName = articles[articleCounter]['source']['name']
+        print(f"source.name: {sourceName}")
+
+        # sourceUrl
+        sourceUrl = articles[articleCounter]['source']['url']
+        print(f"source.url: {sourceUrl}")
+
+        # Analyze sentiment
+        sentimentAnalyzer = SentimentIntensityAnalyzer()
+        sentimentScores = sentimentAnalyzer.polarity_scores(title)
+
+        # Print sentiment scores
+        compound = sentimentScores["compound"]
+        neg = sentimentScores["neg"]
+        neu = sentimentScores["neu"]
+        pos = sentimentScores["pos"]
+
+        print(f"compound: {compound} | neu: {neu} | pos: {pos} | neg: {neg}")
+        print()
