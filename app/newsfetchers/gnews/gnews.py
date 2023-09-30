@@ -2,6 +2,9 @@ import os
 import json
 import urllib.request
 
+from opentelemetry import trace
+from opentelemetry.trace import StatusCode, SpanKind
+
 
 class Gnews:
     def __init__(
@@ -21,47 +24,41 @@ class Gnews:
         # Prepare URL with parameters
         url = f'https://gnews.io/api/v4/search?q={search}&lang={language}&country={country}&max={numMaxNews}&apikey={self.apiKey}'
 
+        # Get the global tracer
+        tracer = trace.get_tracer(__name__)
         try:
             # Fetch news
             print("Fetching Google news...")
-            with urllib.request.urlopen(url) as response:
-                data = json.loads(response.read().decode("utf-8"))
-                articles = data["articles"]
+            articles = []
 
-                print("Google news are fetched successfully.")
+            with tracer.start_as_current_span("Gnews", kind=SpanKind.CLIENT) as span:
+                with urllib.request.urlopen(url) as response:
+                    data = json.loads(response.read().decode("utf-8"))
+                    articles = data["articles"]
 
-                print("Analyzing Google news...")
-                for articleCounter in range(len(articles)):
+            print("Google news are fetched successfully.")
 
-                    # title
-                    title = articles[articleCounter]['title']
-                    print(f"title: {title}")
+            print("Analyzing Google news...")
+            for articleCounter in range(len(articles)):
 
-                    # description
-                    description = articles[articleCounter]['description']
-                    print(f"description: {description}")
+                # Extract information
+                title = articles[articleCounter]['title']
+                description = articles[articleCounter]['description']
+                url = articles[articleCounter]['url']
+                publishedAt = articles[articleCounter]['publishedAt']
+                sentiment = self.analyzer.analyzeStatement(title)
 
-                    # url
-                    url = articles[articleCounter]['url']
-                    print(f"url: {url}")
-
-                    # publishedAt
-                    publishedAt = articles[articleCounter]['publishedAt']
-                    print(f"publishedAt: {publishedAt}")
-
-                    # sourceName
-                    sourceName = articles[articleCounter]['source']['name']
-                    print(f"source.name: {sourceName}")
-
-                    # sourceUrl
-                    sourceUrl = articles[articleCounter]['source']['url']
-                    print(f"source.url: {sourceUrl}")
-
-                    # Analyze sentiment
-                    sentiment = self.analyzer.analyzeStatement(title)
-                    print(f"sentiment: {sentiment}")
+                # Create separate span for each sentiment analysis
+                with tracer.start_as_current_span(title, kind=SpanKind.INTERNAL) as span:
+                    span.set_attribute("news.title", title)
+                    span.set_attribute("news.description", description)
+                    span.set_attribute("news.url", url)
+                    span.set_attribute("news.publishedAt", publishedAt)
+                    span.set_attribute("news.sentiment", sentiment)
 
                 print("Google news are analyzed successfully.")
 
         except Exception as e:
             print(f"Unexpected error is occurred: {e}")
+            span.set_status(StatusCode.ERROR)
+            span.record_exception(e, escaped=True)

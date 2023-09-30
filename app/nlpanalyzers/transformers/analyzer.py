@@ -23,6 +23,6 @@ class TransformerAnalyzer(NlpAnalyzer):
         result = self.model(tokens)
 
         # Calculate sentiment value
-        sentiment = torch.argmax(result.logits)+1.0
+        sentiment = float(torch.argmax(result.logits)+1.0)
 
         return sentiment
