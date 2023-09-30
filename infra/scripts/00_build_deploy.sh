@@ -3,7 +3,8 @@
 ### Set variables
 
 platform="arm64"
-appName="nltkanalyzer"
+# platform="amd64"
+appName="newsanalyzer"
 
 ### Build and push image
 
@@ -11,7 +12,7 @@ appName="nltkanalyzer"
 docker build \
   --platform "linux/${platform}" \
   --tag "${DOCKERHUB_NAME}/${appName}" \
-  "."
+  "../../app"
 
 # docker run --name test "${DOCKERHUB_NAME}/${appName}"
 
